@@ -2223,10 +2223,6 @@ static void YGNodelayoutImpl(const YGNodeRef node,
   YGNodeRef firstAbsoluteChild = NULL;
   YGNodeRef currentAbsoluteChild = NULL;
 
-  const float leadingPaddingAndBorderMain =
-      YGNodeLeadingPaddingAndBorder(node, mainAxis, parentWidth);
-  const float trailingPaddingAndBorderMain =
-      YGNodeTrailingPaddingAndBorder(node, mainAxis, parentWidth);
   const float leadingPaddingAndBorderCross =
       YGNodeLeadingPaddingAndBorder(node, crossAxis, parentWidth);
   const float paddingAndBorderAxisMain = YGNodePaddingAndBorderForAxis(node, mainAxis, parentWidth);
@@ -2246,17 +2242,17 @@ static void YGNodelayoutImpl(const YGNodeRef node,
 
   // STEP 2: DETERMINE AVAILABLE SIZE IN MAIN AND CROSS DIRECTIONS
   const float minInnerWidth =
-      YGResolveValue(&node->style.minDimensions[YGDimensionWidth], parentWidth) - marginAxisRow -
+      YGResolveValue(&node->style.minDimensions[YGDimensionWidth], parentWidth) -
       paddingAndBorderAxisRow;
   const float maxInnerWidth =
-      YGResolveValue(&node->style.maxDimensions[YGDimensionWidth], parentWidth) - marginAxisRow -
+      YGResolveValue(&node->style.maxDimensions[YGDimensionWidth], parentWidth) -
       paddingAndBorderAxisRow;
   const float minInnerHeight =
       YGResolveValue(&node->style.minDimensions[YGDimensionHeight], parentHeight) -
-      marginAxisColumn - paddingAndBorderAxisColumn;
+      paddingAndBorderAxisColumn;
   const float maxInnerHeight =
       YGResolveValue(&node->style.maxDimensions[YGDimensionHeight], parentHeight) -
-      marginAxisColumn - paddingAndBorderAxisColumn;
+      paddingAndBorderAxisColumn;
   const float minInnerMainDim = isMainAxisRow ? minInnerWidth : minInnerHeight;
   const float maxInnerMainDim = isMainAxisRow ? maxInnerWidth : maxInnerHeight;
 
@@ -2478,6 +2474,7 @@ static void YGNodelayoutImpl(const YGNodeRef node,
     // the line length, so there's no more space left to distribute.
 
     // If we don't measure with exact main dimension we want to ensure we don't violate min and max
+    bool sizeBasedOnContent = false;
     if (measureModeMainDim != YGMeasureModeExactly) {
       if (!YGFloatIsUndefined(minInnerMainDim) && sizeConsumedOnCurrentLine < minInnerMainDim) {
         availableInnerMainDim = minInnerMainDim;
@@ -2491,11 +2488,12 @@ static void YGNodelayoutImpl(const YGNodeRef node,
           // space we've used is all space we need. Root node also should be shrunk to minimum
           availableInnerMainDim = sizeConsumedOnCurrentLine;
         }
+        sizeBasedOnContent = !node->config->useLegacyStretchBehaviour;
       }
     }
 
     float remainingFreeSpace = 0;
-    if (!YGFloatIsUndefined(availableInnerMainDim)) {
+    if (!sizeBasedOnContent && !YGFloatIsUndefined(availableInnerMainDim)) {
       remainingFreeSpace = availableInnerMainDim - sizeConsumedOnCurrentLine;
     } else if (sizeConsumedOnCurrentLine < 0) {
       // availableInnerMainDim is indefinite which means the node is being sized based on its
@@ -2756,16 +2754,31 @@ static void YGNodelayoutImpl(const YGNodeRef node,
     // that are aligned "stretch". We need to compute these stretch values and
     // set the final positions.
 
+    const float leadingPaddingAndBorderMain =
+      YGNodeLeadingPaddingAndBorder(node, mainAxis, parentWidth);
+    const float trailingPaddingAndBorderMain =
+      YGNodeTrailingPaddingAndBorder(node, mainAxis, parentWidth);
+
     // If we are using "at most" rules in the main axis. Calculate the remaining space when
     // constraint by the min size defined for the main axis.
 
     if (measureModeMainDim == YGMeasureModeAtMost && remainingFreeSpace > 0) {
       if (node->style.minDimensions[dim[mainAxis]].unit != YGUnitUndefined &&
           YGResolveValue(&node->style.minDimensions[dim[mainAxis]], mainAxisParentSize) >= 0) {
+        // This condition makes sure that if the size of main dimension(after
+        // considering child nodes main dim, leading and trailing padding etc)
+        // falls below min dimension, then the remainingFreeSpace is reassigned
+        // considering the min dimension
+
+        // `minAvailableMainDim` denotes minimum available space in which child
+        // can be laid out, it will exclude space consumed by padding and border.
+        const float minAvailableMainDim =
+          YGResolveValue(&node->style.minDimensions[dim[mainAxis]], mainAxisParentSize) -
+          leadingPaddingAndBorderMain - trailingPaddingAndBorderMain;
+        const float occupiedSpaceByChildNodes =
+          availableInnerMainDim - remainingFreeSpace;
         remainingFreeSpace =
-            fmaxf(0,
-                  YGResolveValue(&node->style.minDimensions[dim[mainAxis]], mainAxisParentSize) -
-                      (availableInnerMainDim - remainingFreeSpace));
+            fmaxf(0, minAvailableMainDim - occupiedSpaceByChildNodes);
       } else {
         remainingFreeSpace = 0;
       }
@@ -2798,6 +2811,11 @@ static void YGNodelayoutImpl(const YGNodeRef node,
           } else {
             betweenMainDim = 0;
           }
+          break;
+        case YGJustifySpaceEvenly:
+          // Space is distributed evenly across all elements
+          betweenMainDim = remainingFreeSpace / (itemsOnLine + 1);
+          leadingMainDim = betweenMainDim;
           break;
         case YGJustifySpaceAround:
           // Space on the edges is half of the space between elements
