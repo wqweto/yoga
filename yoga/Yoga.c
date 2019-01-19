@@ -345,7 +345,7 @@ static inline float YGResolveValueMargin(const YGValue *const value, const float
 int32_t gNodeInstanceCount = 0;
 int32_t gConfigInstanceCount = 0;
 
-WIN_EXPORT YGNodeRef YGNodeNewWithConfig(const YGConfigRef config) {
+YGNodeRef WIN_STDCALL YGNodeNewWithConfig(const YGConfigRef config) {
   const YGNodeRef node = gYGMalloc(sizeof(YGNode));
   YGAssertWithConfig(config, node != NULL, "Could not allocate memory for node");
   gNodeInstanceCount++;
@@ -359,11 +359,11 @@ WIN_EXPORT YGNodeRef YGNodeNewWithConfig(const YGConfigRef config) {
   return node;
 }
 
-YGNodeRef YGNodeNew(void) {
+YGNodeRef WIN_STDCALL YGNodeNew(void) {
   return YGNodeNewWithConfig(&gYGConfigDefaults);
 }
 
-YGNodeRef YGNodeClone(const YGNodeRef oldNode) {
+YGNodeRef WIN_STDCALL YGNodeClone(const YGNodeRef oldNode) {
   const YGNodeRef node = gYGMalloc(sizeof(YGNode));
   YGAssertWithConfig(oldNode->config, node != NULL, "Could not allocate memory for node");
   gNodeInstanceCount++;
@@ -374,7 +374,7 @@ YGNodeRef YGNodeClone(const YGNodeRef oldNode) {
   return node;
 }
 
-void YGNodeFree(const YGNodeRef node) {
+void WIN_STDCALL YGNodeFree(const YGNodeRef node) {
   if (node->parent) {
     YGNodeListDelete(node->parent->children, node);
     node->parent = NULL;
@@ -391,7 +391,7 @@ void YGNodeFree(const YGNodeRef node) {
   gNodeInstanceCount--;
 }
 
-void YGNodeFreeRecursive(const YGNodeRef root) {
+void WIN_STDCALL YGNodeFreeRecursive(const YGNodeRef root) {
   while (YGNodeGetChildCount(root) > 0) {
     const YGNodeRef child = YGNodeGetChild(root, 0);
     if (child->parent != root) {
@@ -404,7 +404,7 @@ void YGNodeFreeRecursive(const YGNodeRef root) {
   YGNodeFree(root);
 }
 
-void YGNodeReset(const YGNodeRef node) {
+void WIN_STDCALL YGNodeReset(const YGNodeRef node) {
   YGAssertWithNode(node,
                    YGNodeGetChildCount(node) == 0,
                    "Cannot reset a node which still has children attached");
@@ -421,20 +421,20 @@ void YGNodeReset(const YGNodeRef node) {
   node->config = config;
 }
 
-int32_t YGNodeGetInstanceCount(void) {
+int32_t WIN_STDCALL YGNodeGetInstanceCount(void) {
   return gNodeInstanceCount;
 }
 
-int32_t YGConfigGetInstanceCount(void) {
+int32_t WIN_STDCALL YGConfigGetInstanceCount(void) {
   return gConfigInstanceCount;
 }
 
 // Export only for C#
-YGConfigRef YGConfigGetDefault() {
+YGConfigRef WIN_STDCALL YGConfigGetDefault() {
   return &gYGConfigDefaults;
 }
 
-YGConfigRef YGConfigNew(void) {
+YGConfigRef WIN_STDCALL YGConfigNew(void) {
   const YGConfigRef config = gYGMalloc(sizeof(YGConfig));
   YGAssert(config != NULL, "Could not allocate memory for config");
 
@@ -443,12 +443,12 @@ YGConfigRef YGConfigNew(void) {
   return config;
 }
 
-void YGConfigFree(const YGConfigRef config) {
+void WIN_STDCALL YGConfigFree(const YGConfigRef config) {
   gYGFree(config);
   gConfigInstanceCount--;
 }
 
-void YGConfigCopy(const YGConfigRef dest, const YGConfigRef src) {
+void WIN_STDCALL YGConfigCopy(const YGConfigRef dest, const YGConfigRef src) {
   memcpy(dest, src, sizeof(YGConfig));
 }
 
@@ -462,7 +462,7 @@ static void YGNodeMarkDirtyInternal(const YGNodeRef node) {
   }
 }
 
-void YGNodeSetMeasureFunc(const YGNodeRef node, YGMeasureFunc measureFunc) {
+void WIN_STDCALL YGNodeSetMeasureFunc(const YGNodeRef node, YGMeasureFunc measureFunc) {
   if (measureFunc == NULL) {
     node->measure = NULL;
     // TODO: t18095186 Move nodeType to opt-in function and mark appropriate places in Litho
@@ -478,15 +478,15 @@ void YGNodeSetMeasureFunc(const YGNodeRef node, YGMeasureFunc measureFunc) {
   }
 }
 
-YGMeasureFunc YGNodeGetMeasureFunc(const YGNodeRef node) {
+YGMeasureFunc WIN_STDCALL YGNodeGetMeasureFunc(const YGNodeRef node) {
   return node->measure;
 }
 
-void YGNodeSetBaselineFunc(const YGNodeRef node, YGBaselineFunc baselineFunc) {
+void WIN_STDCALL YGNodeSetBaselineFunc(const YGNodeRef node, YGBaselineFunc baselineFunc) {
   node->baseline = baselineFunc;
 }
 
-YGBaselineFunc YGNodeGetBaselineFunc(const YGNodeRef node) {
+YGBaselineFunc WIN_STDCALL YGNodeGetBaselineFunc(const YGNodeRef node) {
   return node->baseline;
 }
 
@@ -518,7 +518,7 @@ static void YGCloneChildrenIfNeeded(const YGNodeRef parent) {
   }
 }
 
-void YGNodeInsertChild(const YGNodeRef node, const YGNodeRef child, const uint32_t index) {
+void WIN_STDCALL YGNodeInsertChild(const YGNodeRef node, const YGNodeRef child, const uint32_t index) {
   YGAssertWithNode(node,
                    child->parent == NULL,
                    "Child already has a parent, it must be removed first.");
@@ -533,7 +533,7 @@ void YGNodeInsertChild(const YGNodeRef node, const YGNodeRef child, const uint32
   YGNodeMarkDirtyInternal(node);
 }
 
-void YGNodeRemoveChild(const YGNodeRef parent, const YGNodeRef excludedChild) {
+void WIN_STDCALL YGNodeRemoveChild(const YGNodeRef parent, const YGNodeRef excludedChild) {
   // This algorithm is a forked variant from YGCloneChildrenIfNeeded that excludes a child.
   const uint32_t childCount = YGNodeGetChildCount(parent);
   if (childCount == 0) {
@@ -580,7 +580,7 @@ void YGNodeRemoveChild(const YGNodeRef parent, const YGNodeRef excludedChild) {
   }
 }
 
-void YGNodeRemoveAllChildren(const YGNodeRef parent) {
+void WIN_STDCALL YGNodeRemoveAllChildren(const YGNodeRef parent) {
   const uint32_t childCount = YGNodeGetChildCount(parent);
   if (childCount == 0) {
     // This is an empty set already. Nothing to do.
@@ -603,19 +603,19 @@ void YGNodeRemoveAllChildren(const YGNodeRef parent) {
   YGNodeMarkDirtyInternal(parent);
 }
 
-YGNodeRef YGNodeGetChild(const YGNodeRef node, const uint32_t index) {
+YGNodeRef WIN_STDCALL YGNodeGetChild(const YGNodeRef node, const uint32_t index) {
   return YGNodeListGet(node->children, index);
 }
 
-YGNodeRef YGNodeGetParent(const YGNodeRef node) {
+YGNodeRef WIN_STDCALL YGNodeGetParent(const YGNodeRef node) {
   return node->parent;
 }
 
-uint32_t YGNodeGetChildCount(const YGNodeRef node) {
+uint32_t WIN_STDCALL YGNodeGetChildCount(const YGNodeRef node) {
   return YGNodeListCount(node->children);
 }
 
-void YGNodeMarkDirty(const YGNodeRef node) {
+void WIN_STDCALL YGNodeMarkDirty(const YGNodeRef node) {
   YGAssertWithNode(node,
                    node->measure != NULL,
                    "Only leaf nodes with custom measure functions"
@@ -624,11 +624,11 @@ void YGNodeMarkDirty(const YGNodeRef node) {
   YGNodeMarkDirtyInternal(node);
 }
 
-bool YGNodeIsDirty(const YGNodeRef node) {
+bool WIN_STDCALL YGNodeIsDirty(const YGNodeRef node) {
   return node->isDirty;
 }
 
-void YGNodeCopyStyle(const YGNodeRef dstNode, const YGNodeRef srcNode) {
+void WIN_STDCALL YGNodeCopyStyle(const YGNodeRef dstNode, const YGNodeRef srcNode) {
   if (memcmp(&dstNode->style, &srcNode->style, sizeof(YGStyle)) != 0) {
     memcpy(&dstNode->style, &srcNode->style, sizeof(YGStyle));
     YGNodeMarkDirtyInternal(dstNode);
@@ -649,11 +649,11 @@ static inline float YGResolveFlexGrow(const YGNodeRef node) {
   return kDefaultFlexGrow;
 }
 
-float YGNodeStyleGetFlexGrow(const YGNodeRef node) {
+float WIN_STDCALL YGNodeStyleGetFlexGrow(const YGNodeRef node) {
   return YGFloatIsUndefined(node->style.flexGrow) ? kDefaultFlexGrow : node->style.flexGrow;
 }
 
-float YGNodeStyleGetFlexShrink(const YGNodeRef node) {
+float WIN_STDCALL YGNodeStyleGetFlexShrink(const YGNodeRef node) {
   return YGFloatIsUndefined(node->style.flexShrink)
              ? (node->config->useWebDefaults ? kWebDefaultFlexShrink : kDefaultFlexShrink)
              : node->style.flexShrink;
@@ -685,16 +685,16 @@ static inline const YGValue *YGNodeResolveFlexBasisPtr(const YGNodeRef node) {
 }
 
 #define YG_NODE_PROPERTY_IMPL(type, name, paramName, instanceName) \
-  void YGNodeSet##name(const YGNodeRef node, type paramName) {     \
+  void WIN_STDCALL YGNodeSet##name(const YGNodeRef node, type paramName) {     \
     node->instanceName = paramName;                                \
   }                                                                \
                                                                    \
-  type YGNodeGet##name(const YGNodeRef node) {                     \
+  type WIN_STDCALL YGNodeGet##name(const YGNodeRef node) {                     \
     return node->instanceName;                                     \
   }
 
 #define YG_NODE_STYLE_PROPERTY_SETTER_IMPL(type, name, paramName, instanceName) \
-  void YGNodeStyleSet##name(const YGNodeRef node, const type paramName) {       \
+  void WIN_STDCALL YGNodeStyleSet##name(const YGNodeRef node, const type paramName) {       \
     if (node->style.instanceName != paramName) {                                \
       node->style.instanceName = paramName;                                     \
       YGNodeMarkDirtyInternal(node);                                            \
@@ -702,7 +702,7 @@ static inline const YGValue *YGNodeResolveFlexBasisPtr(const YGNodeRef node) {
   }
 
 #define YG_NODE_STYLE_PROPERTY_SETTER_UNIT_IMPL(type, name, paramName, instanceName)              \
-  void YGNodeStyleSet##name(const YGNodeRef node, const type paramName) {                         \
+  void WIN_STDCALL YGNodeStyleSet##name(const YGNodeRef node, const type paramName) {                         \
     if (node->style.instanceName.value != paramName ||                                            \
         node->style.instanceName.unit != YGUnitPoint) {                                           \
       node->style.instanceName.value = paramName;                                                 \
@@ -711,7 +711,7 @@ static inline const YGValue *YGNodeResolveFlexBasisPtr(const YGNodeRef node) {
     }                                                                                             \
   }                                                                                               \
                                                                                                   \
-  void YGNodeStyleSet##name##Percent(const YGNodeRef node, const type paramName) {                \
+  void WIN_STDCALL YGNodeStyleSet##name##Percent(const YGNodeRef node, const type paramName) {                \
     if (node->style.instanceName.value != paramName ||                                            \
         node->style.instanceName.unit != YGUnitPercent) {                                         \
       node->style.instanceName.value = paramName;                                                 \
@@ -721,7 +721,7 @@ static inline const YGValue *YGNodeResolveFlexBasisPtr(const YGNodeRef node) {
   }
 
 #define YG_NODE_STYLE_PROPERTY_SETTER_UNIT_AUTO_IMPL(type, name, paramName, instanceName)         \
-  void YGNodeStyleSet##name(const YGNodeRef node, const type paramName) {                         \
+  void WIN_STDCALL YGNodeStyleSet##name(const YGNodeRef node, const type paramName) {                         \
     if (node->style.instanceName.value != paramName ||                                            \
         node->style.instanceName.unit != YGUnitPoint) {                                           \
       node->style.instanceName.value = paramName;                                                 \
@@ -730,7 +730,7 @@ static inline const YGValue *YGNodeResolveFlexBasisPtr(const YGNodeRef node) {
     }                                                                                             \
   }                                                                                               \
                                                                                                   \
-  void YGNodeStyleSet##name##Percent(const YGNodeRef node, const type paramName) {                \
+  void WIN_STDCALL YGNodeStyleSet##name##Percent(const YGNodeRef node, const type paramName) {                \
     if (node->style.instanceName.value != paramName ||                                            \
         node->style.instanceName.unit != YGUnitPercent) {                                         \
       node->style.instanceName.value = paramName;                                                 \
@@ -739,7 +739,7 @@ static inline const YGValue *YGNodeResolveFlexBasisPtr(const YGNodeRef node) {
     }                                                                                             \
   }                                                                                               \
                                                                                                   \
-  void YGNodeStyleSet##name##Auto(const YGNodeRef node) {                                         \
+  void WIN_STDCALL YGNodeStyleSet##name##Auto(const YGNodeRef node) {                                         \
     if (node->style.instanceName.unit != YGUnitAuto) {                                            \
       node->style.instanceName.value = YGUndefined;                                               \
       node->style.instanceName.unit = YGUnitAuto;                                                 \
@@ -750,26 +750,26 @@ static inline const YGValue *YGNodeResolveFlexBasisPtr(const YGNodeRef node) {
 #define YG_NODE_STYLE_PROPERTY_IMPL(type, name, paramName, instanceName)  \
   YG_NODE_STYLE_PROPERTY_SETTER_IMPL(type, name, paramName, instanceName) \
                                                                           \
-  type YGNodeStyleGet##name(const YGNodeRef node) {                       \
+  type WIN_STDCALL YGNodeStyleGet##name(const YGNodeRef node) {                       \
     return node->style.instanceName;                                      \
   }
 
 #define YG_NODE_STYLE_PROPERTY_UNIT_IMPL(type, name, paramName, instanceName)   \
   YG_NODE_STYLE_PROPERTY_SETTER_UNIT_IMPL(float, name, paramName, instanceName) \
                                                                                 \
-  type YGNodeStyleGet##name(const YGNodeRef node) {                             \
+  type WIN_STDCALL YGNodeStyleGet##name(const YGNodeRef node) {                             \
     return node->style.instanceName;                                            \
   }
 
 #define YG_NODE_STYLE_PROPERTY_UNIT_AUTO_IMPL(type, name, paramName, instanceName)   \
   YG_NODE_STYLE_PROPERTY_SETTER_UNIT_AUTO_IMPL(float, name, paramName, instanceName) \
                                                                                      \
-  type YGNodeStyleGet##name(const YGNodeRef node) {                                  \
+  type WIN_STDCALL YGNodeStyleGet##name(const YGNodeRef node) {                                  \
     return node->style.instanceName;                                                 \
   }
 
 #define YG_NODE_STYLE_EDGE_PROPERTY_UNIT_AUTO_IMPL(type, name, instanceName) \
-  void YGNodeStyleSet##name##Auto(const YGNodeRef node, const YGEdge edge) { \
+  void WIN_STDCALL YGNodeStyleSet##name##Auto(const YGNodeRef node, const YGEdge edge) { \
     if (node->style.instanceName[edge].unit != YGUnitAuto) {                 \
       node->style.instanceName[edge].value = YGUndefined;                    \
       node->style.instanceName[edge].unit = YGUnitAuto;                      \
@@ -778,7 +778,7 @@ static inline const YGValue *YGNodeResolveFlexBasisPtr(const YGNodeRef node) {
   }
 
 #define YG_NODE_STYLE_EDGE_PROPERTY_UNIT_IMPL(type, name, paramName, instanceName)            \
-  void YGNodeStyleSet##name(const YGNodeRef node, const YGEdge edge, const float paramName) { \
+  void WIN_STDCALL YGNodeStyleSet##name(const YGNodeRef node, const YGEdge edge, const float paramName) { \
     if (node->style.instanceName[edge].value != paramName ||                                  \
         node->style.instanceName[edge].unit != YGUnitPoint) {                                 \
       node->style.instanceName[edge].value = paramName;                                       \
@@ -788,7 +788,7 @@ static inline const YGValue *YGNodeResolveFlexBasisPtr(const YGNodeRef node) {
     }                                                                                         \
   }                                                                                           \
                                                                                               \
-  void YGNodeStyleSet##name##Percent(const YGNodeRef node,                                    \
+  void WIN_STDCALL YGNodeStyleSet##name##Percent(const YGNodeRef node,                                    \
                                      const YGEdge edge,                                       \
                                      const float paramName) {                                 \
     if (node->style.instanceName[edge].value != paramName ||                                  \
@@ -800,12 +800,12 @@ static inline const YGValue *YGNodeResolveFlexBasisPtr(const YGNodeRef node) {
     }                                                                                         \
   }                                                                                           \
                                                                                               \
-  WIN_STRUCT(type) YGNodeStyleGet##name(const YGNodeRef node, const YGEdge edge) {            \
+  WIN_STRUCT(type) WIN_STDCALL YGNodeStyleGet##name(const YGNodeRef node, const YGEdge edge) {            \
     return WIN_STRUCT_REF(node->style.instanceName[edge]);                                    \
   }
 
 #define YG_NODE_STYLE_EDGE_PROPERTY_IMPL(type, name, paramName, instanceName)                 \
-  void YGNodeStyleSet##name(const YGNodeRef node, const YGEdge edge, const float paramName) { \
+  void WIN_STDCALL YGNodeStyleSet##name(const YGNodeRef node, const YGEdge edge, const float paramName) { \
     if (node->style.instanceName[edge].value != paramName ||                                  \
         node->style.instanceName[edge].unit != YGUnitPoint) {                                 \
       node->style.instanceName[edge].value = paramName;                                       \
@@ -815,17 +815,17 @@ static inline const YGValue *YGNodeResolveFlexBasisPtr(const YGNodeRef node) {
     }                                                                                         \
   }                                                                                           \
                                                                                               \
-  float YGNodeStyleGet##name(const YGNodeRef node, const YGEdge edge) {                       \
+  float WIN_STDCALL YGNodeStyleGet##name(const YGNodeRef node, const YGEdge edge) {                       \
     return node->style.instanceName[edge].value;                                              \
   }
 
 #define YG_NODE_LAYOUT_PROPERTY_IMPL(type, name, instanceName) \
-  type YGNodeLayoutGet##name(const YGNodeRef node) {           \
+  type WIN_STDCALL YGNodeLayoutGet##name(const YGNodeRef node) {           \
     return node->layout.instanceName;                          \
   }
 
 #define YG_NODE_LAYOUT_RESOLVED_PROPERTY_IMPL(type, name, instanceName)        \
-  type YGNodeLayoutGet##name(const YGNodeRef node, const YGEdge edge) {        \
+  type WIN_STDCALL YGNodeLayoutGet##name(const YGNodeRef node, const YGEdge edge) {        \
     YGAssertWithNode(node,                                                     \
                      edge < YGEdgeEnd,                                         \
                      "Cannot get layout properties of multi-edge shorthands"); \
@@ -913,7 +913,7 @@ bool YGLayoutNodeInternal(const YGNodeRef node,
                           const char *reason,
                           const YGConfigRef config);
 
-inline bool YGFloatIsUndefined(const float value) {
+inline bool WIN_STDCALL YGFloatIsUndefined(const float value) {
   return isnan(value);
 }
 
@@ -1158,7 +1158,7 @@ static void YGNodePrintInternal(const YGNodeRef node,
   }
 }
 
-void YGNodePrint(const YGNodeRef node, const YGPrintOptions options) {
+void WIN_STDCALL YGNodePrint(const YGNodeRef node, const YGPrintOptions options) {
   YGNodePrintInternal(node, options);
 }
 
@@ -3304,7 +3304,7 @@ static inline bool YGMeasureModeNewMeasureSizeIsStricterAndStillValid(YGMeasureM
          lastSize > size && (lastComputedSize <= size || YGFloatsEqual(size, lastComputedSize));
 }
 
-float YGRoundValueToPixelGrid(const float value,
+float WIN_STDCALL YGRoundValueToPixelGrid(const float value,
                               const float pointScaleFactor,
                               const bool forceCeil,
                               const bool forceFloor) {
@@ -3327,7 +3327,7 @@ float YGRoundValueToPixelGrid(const float value,
   return scaledValue / pointScaleFactor;
 }
 
-bool YGNodeCanUseCachedMeasurement(const YGMeasureMode widthMode,
+bool WIN_STDCALL YGNodeCanUseCachedMeasurement(const YGMeasureMode widthMode,
                                    const float width,
                                    const YGMeasureMode heightMode,
                                    const float height,
@@ -3595,7 +3595,7 @@ bool YGLayoutNodeInternal(const YGNodeRef node,
   return (needToVisitNode || cachedResults == NULL);
 }
 
-void YGConfigSetPointScaleFactor(const YGConfigRef config, const float pixelsInPoint) {
+void WIN_STDCALL YGConfigSetPointScaleFactor(const YGConfigRef config, const float pixelsInPoint) {
   YGAssertWithConfig(config, pixelsInPoint >= 0.0f, "Scale factor should not be less than zero");
 
   // We store points for Pixel as we will use it for rounding
@@ -3663,7 +3663,7 @@ static void YGRoundToPixelGrid(const YGNodeRef node,
   }
 }
 
-void YGNodeCalculateLayout(const YGNodeRef node,
+void WIN_STDCALL YGNodeCalculateLayout(const YGNodeRef node,
                            const float parentWidth,
                            const float parentHeight,
                            const YGDirection parentDirection) {
@@ -3724,7 +3724,7 @@ void YGNodeCalculateLayout(const YGNodeRef node,
   }
 }
 
-void YGConfigSetLogger(const YGConfigRef config, YGLogger logger) {
+void WIN_STDCALL YGConfigSetLogger(const YGConfigRef config, YGLogger logger) {
   if (logger != NULL) {
     config->logger = logger;
   } else {
@@ -3763,61 +3763,61 @@ void YGLog(const YGNodeRef node, YGLogLevel level, const char *format, ...) {
   va_end(args);
 }
 
-void YGAssert(const bool condition, const char *message) {
+void WIN_STDCALL YGAssert(const bool condition, const char *message) {
   if (!condition) {
     YGLog(NULL, YGLogLevelFatal, "%s\n", message);
   }
 }
 
-void YGAssertWithNode(const YGNodeRef node, const bool condition, const char *message) {
+void WIN_STDCALL YGAssertWithNode(const YGNodeRef node, const bool condition, const char *message) {
   if (!condition) {
     YGLog(node, YGLogLevelFatal, "%s\n", message);
   }
 }
 
-void YGAssertWithConfig(const YGConfigRef config, const bool condition, const char *message) {
+void WIN_STDCALL YGAssertWithConfig(const YGConfigRef config, const bool condition, const char *message) {
   if (!condition) {
     YGLogWithConfig(config, YGLogLevelFatal, "%s\n", message);
   }
 }
 
-void YGConfigSetExperimentalFeatureEnabled(const YGConfigRef config,
+void WIN_STDCALL YGConfigSetExperimentalFeatureEnabled(const YGConfigRef config,
                                            const YGExperimentalFeature feature,
                                            const bool enabled) {
   config->experimentalFeatures[feature] = enabled;
 }
 
-inline bool YGConfigIsExperimentalFeatureEnabled(const YGConfigRef config,
+inline bool WIN_STDCALL YGConfigIsExperimentalFeatureEnabled(const YGConfigRef config,
                                                  const YGExperimentalFeature feature) {
   return config->experimentalFeatures[feature];
 }
 
-void YGConfigSetUseWebDefaults(const YGConfigRef config, const bool enabled) {
+void WIN_STDCALL YGConfigSetUseWebDefaults(const YGConfigRef config, const bool enabled) {
   config->useWebDefaults = enabled;
 }
 
-void YGConfigSetUseLegacyStretchBehaviour(const YGConfigRef config,
+void WIN_STDCALL YGConfigSetUseLegacyStretchBehaviour(const YGConfigRef config,
                                           const bool useLegacyStretchBehaviour) {
   config->useLegacyStretchBehaviour = useLegacyStretchBehaviour;
 }
 
-bool YGConfigGetUseWebDefaults(const YGConfigRef config) {
+bool WIN_STDCALL YGConfigGetUseWebDefaults(const YGConfigRef config) {
   return config->useWebDefaults;
 }
 
-void YGConfigSetContext(const YGConfigRef config, void *context) {
+void WIN_STDCALL YGConfigSetContext(const YGConfigRef config, void *context) {
   config->context = context;
 }
 
-void *YGConfigGetContext(const YGConfigRef config) {
+void *WIN_STDCALL YGConfigGetContext(const YGConfigRef config) {
   return config->context;
 }
 
-void YGConfigSetNodeClonedFunc(const YGConfigRef config, const YGNodeClonedFunc callback) {
+void WIN_STDCALL YGConfigSetNodeClonedFunc(const YGConfigRef config, const YGNodeClonedFunc callback) {
   config->cloneNodeCallback = callback;
 }
 
-void YGSetMemoryFuncs(YGMalloc ygmalloc, YGCalloc yccalloc, YGRealloc ygrealloc, YGFree ygfree) {
+void WIN_STDCALL YGSetMemoryFuncs(YGMalloc ygmalloc, YGCalloc yccalloc, YGRealloc ygrealloc, YGFree ygfree) {
   YGAssert(gNodeInstanceCount == 0 && gConfigInstanceCount == 0,
            "Cannot set memory functions: all node must be freed first");
   YGAssert((ygmalloc == NULL && yccalloc == NULL && ygrealloc == NULL && ygfree == NULL) ||

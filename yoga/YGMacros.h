@@ -17,6 +17,12 @@
 #define YG_EXTERN_C_END
 #endif
 
+#ifdef YOGA_STDCALL
+#define WIN_STDCALL __stdcall
+#else
+#define WIN_STDCALL
+#endif
+
 #ifdef _WINDLL
 #define WIN_EXPORT __declspec(dllexport)
 #else

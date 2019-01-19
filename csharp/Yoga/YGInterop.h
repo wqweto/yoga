@@ -18,8 +18,8 @@ typedef int (*YGInteropLogger)(const void *unmanagedConfigPtr,
                                YGLogLevel level,
                                const char *message);
 
-WIN_EXPORT YGConfigRef YGConfigGetDefault();
+WIN_EXPORT YGConfigRef WIN_STDCALL YGConfigGetDefault();
 
-WIN_EXPORT void YGInteropSetLogger(YGInteropLogger managedLogger);
+WIN_EXPORT void WIN_STDCALL YGInteropSetLogger(YGInteropLogger managedLogger);
 
 YG_EXTERN_C_END
