@@ -124,6 +124,7 @@ typedef struct YGNode {
 
   bool isDirty;
   bool hasNewLayout;
+  bool isReferenceBaseline;
   YGNodeType nodeType;
 
   YGValue const *resolvedDimensions[2];
@@ -162,6 +163,7 @@ static const YGNode gYGNodeDefaults = {
     .children = NULL,
     .hasNewLayout = true,
     .isDirty = false,
+    .isReferenceBaseline = false,
     .nodeType = YGNodeTypeDefault,
     .resolvedDimensions = {[YGDimensionWidth] = &YGValueUndefined,
                            [YGDimensionHeight] = &YGValueUndefined},
@@ -516,6 +518,17 @@ static void YGCloneChildrenIfNeeded(const YGNodeRef parent) {
       cloneNodeCallback(oldChild, newChild, parent, i);
     }
   }
+}
+
+void WIN_STDCALL YGNodeSetIsReferenceBaseline(YGNodeRef node, bool isReferenceBaseline) {
+  if (node->isReferenceBaseline != isReferenceBaseline) {
+    node->isReferenceBaseline = isReferenceBaseline;
+    YGNodeMarkDirtyInternal(node);
+  }
+}
+
+bool WIN_STDCALL YGNodeIsReferenceBaseline(YGNodeRef node) {
+  return node->isReferenceBaseline;
 }
 
 void WIN_STDCALL YGNodeInsertChild(const YGNodeRef node, const YGNodeRef child, const uint32_t index) {
@@ -1325,7 +1338,7 @@ static float YGBaseline(const YGNodeRef node) {
     if (child->style.positionType == YGPositionTypeAbsolute) {
       continue;
     }
-    if (YGNodeAlignItem(node, child) == YGAlignBaseline) {
+    if (YGNodeAlignItem(node, child) == YGAlignBaseline || child->isReferenceBaseline) {
       baselineChild = child;
       break;
     }

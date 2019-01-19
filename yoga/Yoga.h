@@ -48,13 +48,13 @@ static const YGValue YGValueAuto = {YGUndefined, YGUnitAuto};
 
 typedef struct YGConfig *YGConfigRef;
 typedef struct YGNode *YGNodeRef;
-typedef YGSize (*YGMeasureFunc)(YGNodeRef node,
+typedef YGSize (WIN_STDCALL *YGMeasureFunc)(YGNodeRef node,
                                 float width,
                                 YGMeasureMode widthMode,
                                 float height,
                                 YGMeasureMode heightMode);
-typedef float (*YGBaselineFunc)(YGNodeRef node, const float width, const float height);
-typedef void (*YGPrintFunc)(YGNodeRef node);
+typedef float (WIN_STDCALL *YGBaselineFunc)(YGNodeRef node, const float width, const float height);
+typedef void (WIN_STDCALL *YGPrintFunc)(YGNodeRef node);
 typedef int (*YGLogger)(const YGConfigRef config,
                         const YGNodeRef node,
                         YGLogLevel level,
@@ -87,6 +87,12 @@ void YGNodeRemoveAllChildren(const YGNodeRef node);
 WIN_EXPORT YGNodeRef WIN_STDCALL YGNodeGetChild(const YGNodeRef node, const uint32_t index);
 YGNodeRef YGNodeGetParent(const YGNodeRef node);
 WIN_EXPORT uint32_t WIN_STDCALL YGNodeGetChildCount(const YGNodeRef node);
+
+WIN_EXPORT void WIN_STDCALL YGNodeSetIsReferenceBaseline(
+    YGNodeRef node,
+    bool isReferenceBaseline);
+
+WIN_EXPORT bool WIN_STDCALL YGNodeIsReferenceBaseline(YGNodeRef node);
 
 WIN_EXPORT void WIN_STDCALL YGNodeCalculateLayout(const YGNodeRef node,
                                       const float availableWidth,
