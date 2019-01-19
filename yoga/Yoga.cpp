@@ -154,7 +154,7 @@ YGBaselineFunc YGNodeGetBaselineFunc(YGNodeRef node) {
   return node->getBaseline();
 }
 
-void YGNodeSetBaselineFunc(YGNodeRef node, YGBaselineFunc baselineFunc) {
+WIN_EXPORT(void) YGNodeSetBaselineFunc(YGNodeRef node, YGBaselineFunc baselineFunc) {
   node->setBaseLineFunc(baselineFunc);
 }
 
@@ -174,7 +174,7 @@ void YGNodeSetPrintFunc(YGNodeRef node, YGPrintFunc printFunc) {
   node->setPrintFunc(printFunc);
 }
 
-bool YGNodeGetHasNewLayout(YGNodeRef node) {
+WIN_EXPORT(bool) YGNodeGetHasNewLayout(YGNodeRef node) {
   return node->getHasNewLayout();
 }
 
@@ -182,7 +182,7 @@ void YGConfigSetPrintTreeFlag(YGConfigRef config, bool enabled) {
   config->printTree = enabled;
 }
 
-void YGNodeSetHasNewLayout(YGNodeRef node, bool hasNewLayout) {
+WIN_EXPORT(void) YGNodeSetHasNewLayout(YGNodeRef node, bool hasNewLayout) {
   node->setHasNewLayout(hasNewLayout);
 }
 
@@ -194,7 +194,7 @@ void YGNodeSetNodeType(YGNodeRef node, YGNodeType nodeType) {
   return node->setNodeType(nodeType);
 }
 
-bool YGNodeIsDirty(YGNodeRef node) {
+WIN_EXPORT(bool) YGNodeIsDirty(YGNodeRef node) {
   return node->isDirty();
 }
 
