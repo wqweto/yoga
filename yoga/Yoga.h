@@ -73,9 +73,9 @@ typedef void (*YGFree)(void *ptr);
 // YGNode
 WIN_EXPORT YGNodeRef WIN_STDCALL YGNodeNew(void);
 WIN_EXPORT YGNodeRef WIN_STDCALL YGNodeNewWithConfig(const YGConfigRef config);
-WIN_EXPORT YGNodeRef WIN_STDCALL YGNodeClone(const YGNodeRef node);
+YGNodeRef YGNodeClone(const YGNodeRef node);
 WIN_EXPORT void WIN_STDCALL YGNodeFree(const YGNodeRef node);
-WIN_EXPORT void WIN_STDCALL YGNodeFreeRecursive(const YGNodeRef node);
+void YGNodeFreeRecursive(const YGNodeRef node);
 WIN_EXPORT void WIN_STDCALL YGNodeReset(const YGNodeRef node);
 WIN_EXPORT int32_t WIN_STDCALL YGNodeGetInstanceCount(void);
 
@@ -83,9 +83,9 @@ WIN_EXPORT void WIN_STDCALL YGNodeInsertChild(const YGNodeRef node,
                                   const YGNodeRef child,
                                   const uint32_t index);
 WIN_EXPORT void WIN_STDCALL YGNodeRemoveChild(const YGNodeRef node, const YGNodeRef child);
-WIN_EXPORT void WIN_STDCALL YGNodeRemoveAllChildren(const YGNodeRef node);
+void YGNodeRemoveAllChildren(const YGNodeRef node);
 WIN_EXPORT YGNodeRef WIN_STDCALL YGNodeGetChild(const YGNodeRef node, const uint32_t index);
-WIN_EXPORT YGNodeRef WIN_STDCALL YGNodeGetParent(const YGNodeRef node);
+YGNodeRef YGNodeGetParent(const YGNodeRef node);
 WIN_EXPORT uint32_t WIN_STDCALL YGNodeGetChildCount(const YGNodeRef node);
 
 WIN_EXPORT void WIN_STDCALL YGNodeCalculateLayout(const YGNodeRef node,
@@ -106,7 +106,7 @@ WIN_EXPORT void WIN_STDCALL YGNodePrint(const YGNodeRef node, const YGPrintOptio
 
 WIN_EXPORT bool WIN_STDCALL YGFloatIsUndefined(const float value);
 
-WIN_EXPORT bool WIN_STDCALL YGNodeCanUseCachedMeasurement(const YGMeasureMode widthMode,
+bool YGNodeCanUseCachedMeasurement(const YGMeasureMode widthMode,
                                               const float width,
                                               const YGMeasureMode heightMode,
                                               const float height,
@@ -234,9 +234,9 @@ YG_NODE_LAYOUT_EDGE_PROPERTY(float, Padding);
 WIN_EXPORT void WIN_STDCALL YGConfigSetLogger(const YGConfigRef config, YGLogger logger);
 void YGLog(const YGNodeRef node, YGLogLevel level, const char *message, ...);
 void YGLogWithConfig(const YGConfigRef config, YGLogLevel level, const char *format, ...);
-WIN_EXPORT void WIN_STDCALL YGAssert(const bool condition, const char *message);
-WIN_EXPORT void WIN_STDCALL YGAssertWithNode(const YGNodeRef node, const bool condition, const char *message);
-WIN_EXPORT void WIN_STDCALL YGAssertWithConfig(const YGConfigRef config,
+void YGAssert(const bool condition, const char *message);
+void YGAssertWithNode(const YGNodeRef node, const bool condition, const char *message);
+void YGAssertWithConfig(const YGConfigRef config,
                                    const bool condition,
                                    const char *message);
 
@@ -250,13 +250,13 @@ WIN_EXPORT void WIN_STDCALL YGConfigSetPointScaleFactor(const YGConfigRef config
 // stretch;
 // Because this was such a long-standing bug we must allow legacy users to switch back to this
 // behaviour.
-WIN_EXPORT void WIN_STDCALL YGConfigSetUseLegacyStretchBehaviour(const YGConfigRef config,
+void YGConfigSetUseLegacyStretchBehaviour(const YGConfigRef config,
                                                      const bool useLegacyStretchBehaviour);
 
 // YGConfig
 WIN_EXPORT YGConfigRef WIN_STDCALL YGConfigNew(void);
 WIN_EXPORT void WIN_STDCALL YGConfigFree(const YGConfigRef config);
-WIN_EXPORT void WIN_STDCALL YGConfigCopy(const YGConfigRef dest, const YGConfigRef src);
+void YGConfigCopy(const YGConfigRef dest, const YGConfigRef src);
 WIN_EXPORT int32_t WIN_STDCALL YGConfigGetInstanceCount(void);
 
 WIN_EXPORT void WIN_STDCALL YGConfigSetExperimentalFeatureEnabled(const YGConfigRef config,
@@ -270,7 +270,7 @@ WIN_EXPORT bool WIN_STDCALL YGConfigIsExperimentalFeatureEnabled(const YGConfigR
 WIN_EXPORT void WIN_STDCALL YGConfigSetUseWebDefaults(const YGConfigRef config, const bool enabled);
 WIN_EXPORT bool WIN_STDCALL YGConfigGetUseWebDefaults(const YGConfigRef config);
 
-WIN_EXPORT void WIN_STDCALL YGConfigSetNodeClonedFunc(const YGConfigRef config,
+void YGConfigSetNodeClonedFunc(const YGConfigRef config,
                                           const YGNodeClonedFunc callback);
 
 // Export only for C#

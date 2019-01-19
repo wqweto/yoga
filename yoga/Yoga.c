@@ -363,7 +363,7 @@ YGNodeRef WIN_STDCALL YGNodeNew(void) {
   return YGNodeNewWithConfig(&gYGConfigDefaults);
 }
 
-YGNodeRef WIN_STDCALL YGNodeClone(const YGNodeRef oldNode) {
+YGNodeRef YGNodeClone(const YGNodeRef oldNode) {
   const YGNodeRef node = gYGMalloc(sizeof(YGNode));
   YGAssertWithConfig(oldNode->config, node != NULL, "Could not allocate memory for node");
   gNodeInstanceCount++;
@@ -391,7 +391,7 @@ void WIN_STDCALL YGNodeFree(const YGNodeRef node) {
   gNodeInstanceCount--;
 }
 
-void WIN_STDCALL YGNodeFreeRecursive(const YGNodeRef root) {
+void YGNodeFreeRecursive(const YGNodeRef root) {
   while (YGNodeGetChildCount(root) > 0) {
     const YGNodeRef child = YGNodeGetChild(root, 0);
     if (child->parent != root) {
@@ -448,7 +448,7 @@ void WIN_STDCALL YGConfigFree(const YGConfigRef config) {
   gConfigInstanceCount--;
 }
 
-void WIN_STDCALL YGConfigCopy(const YGConfigRef dest, const YGConfigRef src) {
+void YGConfigCopy(const YGConfigRef dest, const YGConfigRef src) {
   memcpy(dest, src, sizeof(YGConfig));
 }
 
@@ -580,7 +580,7 @@ void WIN_STDCALL YGNodeRemoveChild(const YGNodeRef parent, const YGNodeRef exclu
   }
 }
 
-void WIN_STDCALL YGNodeRemoveAllChildren(const YGNodeRef parent) {
+void YGNodeRemoveAllChildren(const YGNodeRef parent) {
   const uint32_t childCount = YGNodeGetChildCount(parent);
   if (childCount == 0) {
     // This is an empty set already. Nothing to do.
@@ -607,7 +607,7 @@ YGNodeRef WIN_STDCALL YGNodeGetChild(const YGNodeRef node, const uint32_t index)
   return YGNodeListGet(node->children, index);
 }
 
-YGNodeRef WIN_STDCALL YGNodeGetParent(const YGNodeRef node) {
+YGNodeRef YGNodeGetParent(const YGNodeRef node) {
   return node->parent;
 }
 
@@ -2271,14 +2271,16 @@ static void YGNodelayoutImpl(const YGNodeRef node,
   if (measureModeMainDim == YGMeasureModeExactly) {
     for (uint32_t i = 0; i < childCount; i++) {
       const YGNodeRef child = YGNodeGetChild(node, i);
-      if (singleFlexChild) {
-        if (YGNodeIsFlex(child)) {
+      if (YGNodeIsFlex(child)) {
+        if (singleFlexChild 
+            || YGFloatsEqual(YGResolveFlexGrow(child), 0.0f)
+            || YGFloatsEqual(YGNodeResolveFlexShrink(child), 0.0f)) {
           // There is already a flexible child, abort.
           singleFlexChild = NULL;
           break;
+        } else {
+          singleFlexChild = child;
         }
-      } else if (YGResolveFlexGrow(child) > 0.0f && YGNodeResolveFlexShrink(child) > 0.0f) {
-        singleFlexChild = child;
       }
     }
   }
@@ -3327,7 +3329,7 @@ float WIN_STDCALL YGRoundValueToPixelGrid(const float value,
   return scaledValue / pointScaleFactor;
 }
 
-bool WIN_STDCALL YGNodeCanUseCachedMeasurement(const YGMeasureMode widthMode,
+bool YGNodeCanUseCachedMeasurement(const YGMeasureMode widthMode,
                                    const float width,
                                    const YGMeasureMode heightMode,
                                    const float height,
@@ -3763,19 +3765,19 @@ void YGLog(const YGNodeRef node, YGLogLevel level, const char *format, ...) {
   va_end(args);
 }
 
-void WIN_STDCALL YGAssert(const bool condition, const char *message) {
+void YGAssert(const bool condition, const char *message) {
   if (!condition) {
     YGLog(NULL, YGLogLevelFatal, "%s\n", message);
   }
 }
 
-void WIN_STDCALL YGAssertWithNode(const YGNodeRef node, const bool condition, const char *message) {
+void YGAssertWithNode(const YGNodeRef node, const bool condition, const char *message) {
   if (!condition) {
     YGLog(node, YGLogLevelFatal, "%s\n", message);
   }
 }
 
-void WIN_STDCALL YGAssertWithConfig(const YGConfigRef config, const bool condition, const char *message) {
+void YGAssertWithConfig(const YGConfigRef config, const bool condition, const char *message) {
   if (!condition) {
     YGLogWithConfig(config, YGLogLevelFatal, "%s\n", message);
   }
@@ -3796,7 +3798,7 @@ void WIN_STDCALL YGConfigSetUseWebDefaults(const YGConfigRef config, const bool 
   config->useWebDefaults = enabled;
 }
 
-void WIN_STDCALL YGConfigSetUseLegacyStretchBehaviour(const YGConfigRef config,
+void YGConfigSetUseLegacyStretchBehaviour(const YGConfigRef config,
                                           const bool useLegacyStretchBehaviour) {
   config->useLegacyStretchBehaviour = useLegacyStretchBehaviour;
 }
@@ -3813,7 +3815,7 @@ void *WIN_STDCALL YGConfigGetContext(const YGConfigRef config) {
   return config->context;
 }
 
-void WIN_STDCALL YGConfigSetNodeClonedFunc(const YGConfigRef config, const YGNodeClonedFunc callback) {
+void YGConfigSetNodeClonedFunc(const YGConfigRef config, const YGNodeClonedFunc callback) {
   config->cloneNodeCallback = callback;
 }
 
