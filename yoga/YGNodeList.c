@@ -74,7 +74,7 @@ void YGNodeListInsert(YGNodeListRef *listp, const YGNodeRef node, const uint32_t
   list->items[index] = node;
 }
 
-void YGNodeListReplace(YGNodeListRef list, const uint32_t index, const YGNodeRef newNode) {
+void YGNodeListReplace(const YGNodeListRef list, const uint32_t index, const YGNodeRef newNode) {
   list->items[index] = newNode;
 }
 
