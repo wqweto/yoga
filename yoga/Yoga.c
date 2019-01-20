@@ -285,6 +285,7 @@ static int YGDefaultLog(const YGConfigRef config,
                         YGLogLevel level,
                         const char *format,
                         va_list args) {
+  /*
   switch (level) {
     case YGLogLevelError:
     case YGLogLevelFatal:
@@ -296,6 +297,8 @@ static int YGDefaultLog(const YGConfigRef config,
     default:
       return vprintf(format, args);
   }
+  */
+  return 0;
 }
 #endif
 
@@ -3285,9 +3288,11 @@ static void YGNodelayoutImpl(const YGNodeRef node,
 }
 
 uint32_t gDepth = 0;
+#ifdef DEBUG_LAYOUT
 bool gPrintTree = false;
 bool gPrintChanges = false;
 bool gPrintSkips = false;
+#endif
 
 static const char *spacer = "                                                            ";
 
@@ -3534,13 +3539,13 @@ bool YGLayoutNodeInternal(const YGNodeRef node,
   if (!needToVisitNode && cachedResults != NULL) {
     layout->measuredDimensions[YGDimensionWidth] = cachedResults->computedWidth;
     layout->measuredDimensions[YGDimensionHeight] = cachedResults->computedHeight;
-
+#ifdef DEBUG_LAYOUT
     if (gPrintChanges && gPrintSkips) {
-      printf("%s%d.{[skipped] ", YGSpacer(gDepth), gDepth);
+      YGLog(NULL, YGLogLevelDebug, "%s%d.{[skipped] ", YGSpacer(gDepth), gDepth);
       if (node->print) {
         node->print(node);
       }
-      printf("wm: %s, hm: %s, aw: %f ah: %f => d: (%f, %f) %s\n",
+      YGLog(NULL, YGLogLevelDebug, "wm: %s, hm: %s, aw: %f ah: %f => d: (%f, %f) %s\n",
              YGMeasureModeName(widthMeasureMode, performLayout),
              YGMeasureModeName(heightMeasureMode, performLayout),
              availableWidth,
@@ -3549,19 +3554,22 @@ bool YGLayoutNodeInternal(const YGNodeRef node,
              cachedResults->computedHeight,
              reason);
     }
+#endif
   } else {
+#ifdef DEBUG_LAYOUT
     if (gPrintChanges) {
-      printf("%s%d.{%s", YGSpacer(gDepth), gDepth, needToVisitNode ? "*" : "");
+      YGLog(NULL, YGLogLevelDebug, "%s%d.{%s", YGSpacer(gDepth), gDepth, needToVisitNode ? "*" : "");
       if (node->print) {
         node->print(node);
       }
-      printf("wm: %s, hm: %s, aw: %f ah: %f %s\n",
+      YGLog(NULL, YGLogLevelDebug, "wm: %s, hm: %s, aw: %f ah: %f %s\n",
              YGMeasureModeName(widthMeasureMode, performLayout),
              YGMeasureModeName(heightMeasureMode, performLayout),
              availableWidth,
              availableHeight,
              reason);
     }
+#endif
 
     YGNodelayoutImpl(node,
                      availableWidth,
@@ -3573,27 +3581,30 @@ bool YGLayoutNodeInternal(const YGNodeRef node,
                      parentHeight,
                      performLayout,
                      config);
-
+#ifdef DEBUG_LAYOUT
     if (gPrintChanges) {
-      printf("%s%d.}%s", YGSpacer(gDepth), gDepth, needToVisitNode ? "*" : "");
+      YGLog(NULL, YGLogLevelDebug, "%s%d.}%s", YGSpacer(gDepth), gDepth, needToVisitNode ? "*" : "");
       if (node->print) {
         node->print(node);
       }
-      printf("wm: %s, hm: %s, d: (%f, %f) %s\n",
+      YGLog(NULL, YGLogLevelDebug, "wm: %s, hm: %s, d: (%f, %f) %s\n",
              YGMeasureModeName(widthMeasureMode, performLayout),
              YGMeasureModeName(heightMeasureMode, performLayout),
              layout->measuredDimensions[YGDimensionWidth],
              layout->measuredDimensions[YGDimensionHeight],
              reason);
     }
+#endif
 
     layout->lastParentDirection = parentDirection;
 
     if (cachedResults == NULL) {
       if (layout->nextCachedMeasurementsIndex == YG_MAX_CACHED_RESULT_COUNT) {
+#ifdef DEBUG_LAYOUT
         if (gPrintChanges) {
-          printf("Out of cache entries!\n");
+          YGLog(NULL, YGLogLevelDebug, "Out of cache entries!\n");
         }
+#endif
         layout->nextCachedMeasurementsIndex = 0;
       }
 
@@ -3751,9 +3762,11 @@ void WIN_STDCALL YGNodeCalculateLayout(const YGNodeRef node,
     YGNodeSetPosition(node, node->layout.direction, parentWidth, parentHeight, parentWidth);
     YGRoundToPixelGrid(node, node->config->pointScaleFactor, 0.0f, 0.0f);
 
+#ifdef DEBUG_LAYOUT
     if (gPrintTree) {
       YGNodePrint(node, YGPrintOptionsLayout | YGPrintOptionsChildren | YGPrintOptionsStyle);
     }
+#endif
   }
 }
 
